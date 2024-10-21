@@ -32,10 +32,10 @@ print(final_forecast_data.shape)
 print(forecast_history_data.shape)
 print(input_data.shape)
 
-categories_present=['Dairy', 'Bakery', 'Fruits', 'Beverage',
-                    'Cheese', 'Chocolates', 'Fat & Oil', 'Filling & Jam',
-                    'Grocery', 'Meat', 'Non Food', 'Flour, Grain & Flakes',
-                    'Nuts, Seeds & Beans', 'PHD', 'Seafood']
+categories_present = ['Dairy', 'Bakery', 'Fruits', 'Beverage',
+                      'Cheese', 'Chocolates', 'Fat & Oil', 'Filling & Jam',
+                      'Grocery', 'Meat', 'Non Food', 'Flour, Grain & Flakes',
+                      'Nuts, Seeds & Beans', 'PHD', 'Seafood']
 
 import os
 
@@ -51,8 +51,8 @@ sku_details.rename(columns={'Product': "sku", 'H1_description': "H1", "H2_descri
     , "H3_description": 'H3', "H4_description": "H4", "H5_description": "H5"}, inplace=True)
 sku_details['sku'] = sku_details['sku'].astype(int)
 
-c=sku_details['H1'].isin(categories_present)
-sku_details=sku_details[c]
+c = sku_details['H1'].isin(categories_present)
+sku_details = sku_details[c]
 
 sku_details['NetWeight'] = sku_details['NetWeight'].astype(float)
 
@@ -106,16 +106,15 @@ input_data = pd.merge(input_data, sku_details[['sku', "H1"]],
                       left_on=['MATERIAL']
                       , right_on=['sku'], how='left')
 
-c=input_data['H1'].isin(categories_present)
-input_data=input_data[c]
+c = input_data['H1'].isin(categories_present)
+input_data = input_data[c]
 
 input_data.drop(['sku'], axis=1, inplace=True)
 print(input_data.head().T)
 print(input_data['H1'].unique(), 'Printing_DATA')
 print(final_forecast_data.head(), 'Printing_FF')
 
-
-input_data_c=make_input_data_continous_new(input_data,current_date)
+input_data_c = make_input_data_continous_new(input_data, current_date)
 
 input_data_c.sort_values(['MATERIAL', 'H1', "CHNL_NAME", 'date'], inplace=True)
 input_data_c.to_csv('./DATA/RESULTS/input_data_.csv', index=False)
@@ -129,12 +128,10 @@ input_data_c['last_year_KG_SUM'] = input_data_c.groupby(['MATERIAL', 'H1', 'CHNL
 
 final_forecast_data['year_month'] = final_forecast_data['forecast_month']
 
-
 input_d = input_data_c.copy()
 c = input_d['TOTAL_QTY_BASEUOM_COUNT'] > 0
 c1 = input_d['TOTAL_QTY_BASEUOM_SUM'] > 0
 input_d = input_d[c & c1]
-
 
 max_date_input = input_d.groupby(['MATERIAL', 'CHNL_NAME'], as_index=False)['date'].max()
 max_date_input.rename(columns={"date": "max_date"}, inplace=True)
@@ -144,13 +141,9 @@ input_d = pd.merge(input_d, max_date_input, on=['MATERIAL', 'CHNL_NAME'], how='l
 c = input_d['date'] == input_d['max_date']
 input_d = input_d[c][['MATERIAL', 'CHNL_NAME', "TOTAL_SALES_SUM", 'TOTAL_QTY_BASEUOM_SUM']]
 
-
 input_d["one_unit_cost"] = input_d['TOTAL_SALES_SUM'] / input_d['TOTAL_QTY_BASEUOM_SUM']
 input_data_c = pd.merge(input_data_c, input_d[['MATERIAL', 'CHNL_NAME', 'one_unit_cost']], on=['MATERIAL', 'CHNL_NAME'],
                         how='left')
-
-
-
 
 input_data_c.rename(columns={"MATERIAL": "sku", 'CHNL_NAME': "Channel"}, inplace=True)
 # input_data_c.to_clipboard(index=False,sep=',')
@@ -159,8 +152,6 @@ input_data_c.rename(columns={"MATERIAL": "sku", 'CHNL_NAME': "Channel"}, inplace
 input_data_c['TOTAL_QTY_BASEUOM_SUM'].fillna(0, inplace=True)
 input_data_c['QTY_BASEUOM_SUM'].fillna(0, inplace=True)
 input_data_c['contract_sales'] = input_data_c['TOTAL_QTY_BASEUOM_SUM'] - input_data_c['QTY_BASEUOM_SUM']
-
-
 
 input_data_c.rename(columns={"MATERIAL": "sku", 'CHNL_NAME': "Channel"}, inplace=True)
 # input_data_c.to_clipboard(index=False,sep=',')
@@ -182,7 +173,6 @@ final_file_schema_1['NetWeight'] = final_file_schema_1['NetWeight'].astype(float
 
 data_mapping_prediction_vs_last_year_demand = get_datamapping_pred_vs_last_year_demand(final_file_schema_1)
 
-
 final_file_schema_1['Revised_Sale'] = 0
 
 # SCHEMA 1 PREDICTION VS LAST YEAR DEMAND
@@ -200,7 +190,6 @@ pred_vs_lyd_schema.to_excel(writer, sheet_name=sheet_name + "PRED_VS_LAST_YEAR_D
 c = input_data_c['date'] <= current_date
 c2 = input_data_c['date'] > current_date - pd.DateOffset(months=6)
 summary_product_sales_data = input_data_c[c & c2]
-
 
 summary_product_sales_data = pd.merge(summary_product_sales_data, sku_details[['sku', 'NetWeight']], on=['sku'],
                                       how='left')
@@ -236,23 +225,21 @@ product_sales_schema_data.to_excel(writer, sheet_name=sheet_name + "PRODUCT_SALE
 
 product_sales_schema_data.to_csv('./DATA/RESULTS/prod_summary.csv', index=False, sep=',')
 
-
 sku_channel_history = forecast_history_data[['sku', 'Channel']].drop_duplicates()
 
-
-history_date_range=(pd.date_range(current_date - pd.DateOffset(months=6), current_date, freq="M") + pd.DateOffset(days=1)).astype(str).str[:-3]
+history_date_range = (pd.date_range(current_date - pd.DateOffset(months=6), current_date, freq="M") + pd.DateOffset(
+    days=1)).astype(str).str[:-3]
 print(history_date_range)
 
-sku_channel_history['grp']=1
+sku_channel_history['grp'] = 1
 sku_channel_history.head()
 
-dummy_data=pd.DataFrame({'grp':[1],'year_month':[history_date_range]})
-sku_channel_history_data_=pd.merge(sku_channel_history,dummy_data,on=['grp'],how='left')
-sku_channel_history_data_=sku_channel_history_data_.explode('year_month')
+dummy_data = pd.DataFrame({'grp': [1], 'year_month': [history_date_range]})
+sku_channel_history_data_ = pd.merge(sku_channel_history, dummy_data, on=['grp'], how='left')
+sku_channel_history_data_ = sku_channel_history_data_.explode('year_month')
 
 forecast_history_data = pd.merge(sku_channel_history_data_, forecast_history_data, on=['sku', 'year_month', 'Channel'],
                                  how='left')
-
 
 forecast_history_data_ = forecast_history_data[forecast_history_data['final_perdiction'].notnull()]
 
@@ -346,7 +333,7 @@ acc_final_data_schema["medium_percentage_value"] = np.round(acc_final_data_schem
 acc_final_data_schema["low_percentage_value"] = np.round(acc_final_data_schema['low_percentage_value'], decimals=2)
 
 print("Acc final Data Schema")
-acc_final_data_schema.drop('sku_count',axis=1,inplace=True)
+acc_final_data_schema.drop('sku_count', axis=1, inplace=True)
 acc_final_data_schema.to_csv("./DATA/RESULTS/acc_seg.csv")
 acc_final_data_schema.to_excel(writer, sheet_name=sheet_name + "ACC_SEG", index=False)
 
@@ -403,58 +390,63 @@ print("Acc confusion matrix schema")
 confusion_matrix_schema.to_csv('./DATA/RESULTS/confusion_matrix.csv')
 confusion_matrix_schema.to_excel(writer, sheet_name=sheet_name + "CONFUSION_MATRIX", index=False)
 
-
-
-
 # SKU DEMAND SECTION
 
-forecast_to_attach=pd.concat([forecast_history_data_,final_forecast_data[['sku','year_month','Channel','final_perdiction']]])
-input_data_c1=pd.merge(input_data_c,forecast_to_attach,on=['sku','year_month','Channel'],how='left')
-input_data_c1['mape'] = np.abs(input_data_c1['final_perdiction'] - input_data_c1['QTY_BASEUOM_SUM']) / input_data_c1['QTY_BASEUOM_SUM']
+combinations_present=pd.concat([forecast_history_data_[['sku','Channel']],final_forecast_data[['sku','Channel']]],axis=0).drop_duplicates()
+input_data_c=pd.merge(combinations_present,input_data_c,on=['sku','Channel'],how='left')
+
+forecast_to_attach = pd.concat(
+    [forecast_history_data_, final_forecast_data[['sku', 'year_month', 'Channel', 'final_perdiction']]])
+input_data_c1 = pd.merge(input_data_c, forecast_to_attach, on=['sku', 'year_month', 'Channel'], how='left')
+input_data_c1['mape'] = np.abs(input_data_c1['final_perdiction'] - input_data_c1['QTY_BASEUOM_SUM']) / input_data_c1[
+    'QTY_BASEUOM_SUM']
 input_data_c1['notinf'] = np.where(np.isinf(input_data_c1['mape']), 0, 1)
 input_data_c1['mape'] = np.where(np.isinf(input_data_c1['mape']), 0, input_data_c1['mape'])
 
-input_data_c1.sort_values(['sku','Channel','year_month'],inplace=True)
-input_data_c1['3_mape']=input_data_c1.groupby(['sku','Channel'])['mape'].rolling(3).sum().values
-input_data_c1['3_notinf']=input_data_c1.groupby(['sku','Channel'])['notinf'].rolling(3).sum().values
+input_data_c1.sort_values(['sku', 'Channel', 'year_month'], inplace=True)
+input_data_c1['3_mape'] = input_data_c1.groupby(['sku', 'Channel'])['mape'].rolling(3).sum().values
+input_data_c1['3_notinf'] = input_data_c1.groupby(['sku', 'Channel'])['notinf'].rolling(3).sum().values
 input_data_c1['3_months_acc'] = input_data_c1['3_mape'] / input_data_c1['3_notinf']
-input_data_c1['3_months_acc']=np.where(input_data_c1['date']>current_date,np.nan,input_data_c1['3_months_acc'])
-input_data_c1['TOTAL_QTY_BASEUOM_SUM']=np.where(input_data_c1['date']>current_date,np.nan,input_data_c1['TOTAL_QTY_BASEUOM_SUM'])
-
+input_data_c1['3_months_acc'] = np.where(input_data_c1['date'] > current_date, np.nan, input_data_c1['3_months_acc'])
+input_data_c1['TOTAL_QTY_BASEUOM_SUM'] = np.where(input_data_c1['date'] > current_date, np.nan,
+                                                  input_data_c1['TOTAL_QTY_BASEUOM_SUM'])
 
 # Attach _revision here
-input_data_c1['revision']=0
+input_data_c1['revision'] = 0
 
-input_data_c1['statistical_forecast']=input_data_c1['final_perdiction']
+input_data_c1['statistical_forecast'] = input_data_c1['final_perdiction']
 
-input_data_c1['final_forecast'] = input_data_c1['statistical_forecast'].fillna(0).astype(float).astype(int) + input_data_c1['revision'].astype(int)
+input_data_c1['final_forecast'] = input_data_c1['statistical_forecast'].fillna(0).astype(float).astype(int) + \
+                                  input_data_c1['revision'].astype(int)
 
 # print(sku_demand_schema['statistical'])
 # print(sku_demand_schema['statistical'].unique())
 input_data_c1['statistical'] = '1'
 input_data_c1['last_updated_at'] = datetime.now().date()
 
+input_data_c1 = pd.merge(input_data_c1, sku_details[['sku', 'ServiceLevel', 'ServiceLevel_value', "LeadTime"]],
+                         on=['sku'], how='left')
 
-input_data_c1=pd.merge(input_data_c1,sku_details[['sku','ServiceLevel','ServiceLevel_value',"LeadTime"]],on=['sku'],how='left')
+c = input_data_c1['date'] <= current_date
+c1 = input_data_c1['date'] > (current_date - pd.DateOffset(months=24))
+sku_wise_data = \
+    input_data_c[c & c1][['sku', 'year_month', 'TOTAL_QTY_BASEUOM_SUM']].groupby(['sku', 'year_month'], as_index=False)[
+        'TOTAL_QTY_BASEUOM_SUM'].sum()
+std_dev = sku_wise_data.groupby(['sku'], as_index=False).agg({'TOTAL_QTY_BASEUOM_SUM': ['std', 'var', 'mean']})
+std_dev.columns = ['sku', 'Standard_Dev', 'var', 'mean']
+std_dev['Variability'] = std_dev['Standard_Dev'] / std_dev['mean']
+input_data_c1 = pd.merge(input_data_c1, std_dev, on=['sku'], how='left')
 
-c=input_data_c1['date']<=current_date
-c1=input_data_c1['date']>(current_date-pd.DateOffset(months=24))
-sku_wise_data=input_data_c[c & c1][['sku','year_month','TOTAL_QTY_BASEUOM_SUM']].groupby(['sku','year_month'],as_index=False)['TOTAL_QTY_BASEUOM_SUM'].sum()
-std_dev=sku_wise_data.groupby(['sku'],as_index=False).agg({'TOTAL_QTY_BASEUOM_SUM':['std','var','mean']})
-std_dev.columns=['sku','Standard_Dev','var','mean']
-std_dev['Variability']=std_dev['Standard_Dev']/std_dev['mean']
-input_data_c1=pd.merge(input_data_c1,std_dev,on=['sku'],how='left')
+input_data_c1['Safety Stock'] = np.sqrt(np.ceil(input_data_c1['LeadTime'].astype(float) / 30)) * input_data_c1[
+    'ServiceLevel_value'].astype(float) * (input_data_c1['Standard_Dev']) * 1.2
 
-input_data_c1['Safety Stock'] = np.sqrt(np.ceil(input_data_c1['LeadTime'].astype(float) / 30)) * input_data_c1['ServiceLevel_value'].astype(float) * (input_data_c1['Standard_Dev']) * 1.2
+c = input_data_c1['date'] > (current_date - pd.DateOffset(months=2))
+sku_demand_schema = input_data_c1[c]
 
-c=input_data_c1['date']> (current_date-pd.DateOffset(months=2))
-sku_demand_schema=input_data_c1[c]
+sku_demand_schema['total'] = 0
 
-
-sku_demand_schema['total']=0
-
-sku_demand_schema=pd.merge(sku_demand_schema,sku_details[['sku','H2','MrpPurchaser','PdProductDescription']],on=['sku'],how='left')
-
+sku_demand_schema = pd.merge(sku_demand_schema, sku_details[['sku', 'H2', 'MrpPurchaser', 'PdProductDescription']],
+                             on=['sku'], how='left')
 
 # REquired
 sku_demand_schema['year'] = pd.to_datetime(sku_demand_schema['year_month'] + "-01").dt.year
@@ -480,24 +472,22 @@ rename_dict = {
 }
 sku_demand_schema.rename(columns=rename_dict, inplace=True)
 
-
 sku_demand_schema['client_id'] = 1
 cols_req = ['sku', 'product_name', 'h1', 'h2', 'channel', 'mrp_purchaser',
             'desired_service_level', 'variability', 'three_month_accuracy', 'revision', 'contract_sales',
             'final_forecast', 'mape',
             'month', 'year', 'statistical_forecast', 'last_year_demand', 'actuals',
             'safety_stock', 'statistical', 'total', 'client_id']
-sku_demand_schema=sku_demand_schema[cols_req]
-
+sku_demand_schema = sku_demand_schema[cols_req]
 
 sku_demand_schema['statistical_forecast'] = np.round(sku_demand_schema['statistical_forecast'])
 # .astype(int, errors='ignore'))
 sku_demand_schema['safety_stock'] = np.ceil(sku_demand_schema['safety_stock'])
 sku_demand_schema['mape'] = np.where(np.isinf(sku_demand_schema['mape']), np.nan, sku_demand_schema['mape'])
 
-sku_demand_schema['final_forecast'] = sku_demand_schema['statistical_forecast'].fillna(0).astype(float).astype(int) + sku_demand_schema[
-    'revision'].astype(int)
-
+sku_demand_schema['final_forecast'] = sku_demand_schema['statistical_forecast'].fillna(0).astype(float).astype(int) + \
+                                      sku_demand_schema[
+                                          'revision'].astype(int)
 
 statistical_c = sku_demand_schema['statistical'] == '1'
 sku_demand_schema['last_updated_at'] = datetime.now().date()
@@ -532,10 +522,10 @@ sample_sku_schema['statistical_forecast'] = 0
 
 a = set(sku_demand_page['sku'].unique())
 b = set(sku_details[sku_details['CrossPlantStatus'] == "AC"]['sku'].unique())
-a,b
-
+a, b
 
 from tqdm import tqdm
+
 extra_sku = pd.DataFrame()
 for i in tqdm(b - a):
     c = sku_details['sku'] == i
@@ -551,7 +541,7 @@ for i in tqdm(b - a):
         dummy_2['h2'] = sku_details_['H2'].values[0]
     extra_sku = pd.concat([extra_sku, dummy_2], axis=0)
 
-sku_demand=pd.concat([sku_demand_page,extra_sku.reset_index(drop=True)],axis=0)
+sku_demand = pd.concat([sku_demand_page, extra_sku.reset_index(drop=True)], axis=0)
 
 sku_demand['variability'] = np.round(sku_demand['variability'], 2)
 filter_sku = pd.read_csv('./DATA/INPUT_DATA/filter_BIN_.csv')
@@ -586,11 +576,11 @@ sku_demand_page_1 = pd.concat([a_b_sku_demand, non_a_b_sku_demand], axis=0)
 # Changing accuracy >>
 sku_demand_page_1['three_month_accuracy'] = 1 - sku_demand_page_1['three_month_accuracy']
 sku_demand_page_1['three_month_accuracy'] = np.where(sku_demand_page_1['three_month_accuracy'] < 0,
-                                                   0, sku_demand_page_1['three_month_accuracy'])
+                                                     0, sku_demand_page_1['three_month_accuracy'])
 
 sku_demand_page_1['mape'] = 1 - sku_demand_page_1['mape']
 sku_demand_page_1['mape'] = np.where(sku_demand_page_1['mape'] < 0,
-                                   0, sku_demand_page_1['mape'])
+                                     0, sku_demand_page_1['mape'])
 sku_demand_page_1['mape'] = np.round(sku_demand_page_1['mape'] * 100)
 
 sku_other_details = pd.read_csv('./DATA/INPUT_DATA/PhoonHuat Service Level and Lead times 20240911.csv')
@@ -602,6 +592,11 @@ sku_other_details.rename(
     columns={"MATERIAL": "sku", "SALES_BIN": "sales_bin", "CUST_BIN": "cust_bin", "SO_BIN": "so_bin"}, inplace=True)
 sku_other_details = sku_other_details[['sku', 'sales_bin', 'cust_bin', 'so_bin']]
 sku_demand_page_1 = pd.merge(sku_demand_page_1, sku_other_details, on=['sku'], how='left')
+
+c = pd.to_datetime(
+    sku_demand_page_1['year'].astype(str) + "-" + sku_demand_page_1['month'].astype(str) + "-01") > current_date
+sku_demand_page_1['mape'] = np.where(c, np.nan, sku_demand_page_1['mape'])
+sku_demand_page_1['actuals'] = np.where(c, np.nan, sku_demand_page_1['actuals'])
 
 # sku_demand_page["statistical"] = 1
 sku_demand_page_1.to_excel(writer, sheet_name=sheet_name + "SKU_DEMAND_PAGE", index=False)
